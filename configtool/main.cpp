@@ -68,10 +68,22 @@ void checked_main(int const argc, char **argv) {
 		else if(args::is_control_tank(arg)) conf.get()->control = TANK;
 		else if(args::is_control_delta(arg)) conf.get()->control = DELTA;
 		else if(args::is_deadzone(arg, &deadzone)) conf.get()->deadzone = deadzone;
-		else if(args::is_rc_ch1_min(arg, &rc_val)) conf.get()->remote_control_min_value_ch1 = rc_val;
-		else if(args::is_rc_ch1_max(arg, &rc_val)) conf.get()->remote_control_max_value_ch1 = rc_val;
-		else if(args::is_rc_ch2_min(arg, &rc_val)) conf.get()->remote_control_min_value_ch2 = rc_val;
-		else if(args::is_rc_ch2_max(arg, &rc_val)) conf.get()->remote_control_max_value_ch2 = rc_val;
+		else if(args::is_rc_ch1_min(arg, &rc_val)) {
+			conf.get()->remote_control_min_value_ch1 = rc_val;
+			conf.update();
+		}
+		else if(args::is_rc_ch1_max(arg, &rc_val)) {
+			conf.get()->remote_control_max_value_ch1 = rc_val;
+			conf.update();
+		}
+		else if(args::is_rc_ch2_min(arg, &rc_val)) {
+			conf.get()->remote_control_min_value_ch2 = rc_val;
+			conf.update();
+		}
+		else if(args::is_rc_ch2_max(arg, &rc_val)) {
+			conf.get()->remote_control_max_value_ch2 = rc_val;
+			conf.update();
+		}
 		else if(args::is_display_configuration(arg)) display_configuration = true;
 		else throw std::runtime_error("Argument not valid. Exiting program.");
 	}

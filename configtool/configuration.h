@@ -28,6 +28,7 @@
 
 #include <iostream>
 #include <stdlib.h>
+#include "dim3.h"
 
 enum E_CONTROL{TANK, DELTA};
 
@@ -38,6 +39,8 @@ typedef struct {
 	size_t remote_control_max_value_ch1;
 	size_t remote_control_min_value_ch2;
 	size_t remote_control_max_value_ch2;
+	int r1, s1, t1;
+	int r2, s2, t2;
 } s_configuration;
 
 class configuration {
@@ -67,6 +70,11 @@ public:
 	 */
 	inline s_configuration *get() { return &m_conf; }
 
+	/**
+	 * @brief update function for updating the r-s-t values for left and right channel delta control
+	 */
+	void update();
+
 private:
 	s_configuration m_conf;
 
@@ -74,6 +82,11 @@ private:
 	 * @brief reads the configuration from the device and stores it in m_conf
 	 */
 	void read();
+
+	/**
+	 * @brief calculates the r-s-t parameters out of 3 points for the delta mixer parameters
+	 */
+	void calc_RST(int &r, int &s, int &t, dim3 const &P1, dim3 const &P2, dim3 const &P3);
 };
 
 

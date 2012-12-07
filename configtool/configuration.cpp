@@ -29,6 +29,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
+#include <arpa/inet.h>
+#include <stdio.h>
 
 /**
  * @brief Constructor
@@ -42,15 +44,31 @@ configuration::configuration() {
  */
 void configuration::write() {
 	// send the configuration data to the device
-	size_t const write_request_size = 7;
+	size_t const write_request_size = 7 + 3 * sizeof(int); // sizeof(int) = 4; 7 + 3 * 4 = 19
 	unsigned char wire_request_buf[write_request_size] = {0x01, 0x00,
 			static_cast<unsigned char>(m_conf.deadzone),
 			static_cast<unsigned char>(m_conf.remote_control_min_value_ch1),
 			static_cast<unsigned char>(m_conf.remote_control_max_value_ch1),
 			static_cast<unsigned char>(m_conf.remote_control_min_value_ch2),
-			static_cast<unsigned char>(m_conf.remote_control_max_value_ch2)};
+			static_cast<unsigned char>(m_conf.remote_control_max_value_ch2),
+			0,0,0,0,0,0,0,0,0,0,0,0};
 
 	if(m_conf.control == TANK) wire_request_buf[1] |= 0x02;
+
+	// we transmit the r-s-t values in the order R1 R2 S1, since
+	// T1 = S1
+	// S2 = S1
+	// T2 = -S2
+
+	// convert r-s-t values to network-byte-order to provide guaranteed big-endianess
+	unsigned int const R1 = htonl(m_conf.r1);
+	memcpy(wire_request_buf + 7, &R1, sizeof(int));
+	unsigned int const R2 = htonl(m_conf.r2);
+	memcpy(wire_request_buf + 7 + sizeof(int), &R2, sizeof(int));
+	unsigned int const S1 = htonl(m_conf.s1);
+	memcpy(wire_request_buf + 7 + 2 * sizeof(int), &S1, sizeof(int));
+
+	// transmit the data
 	serial::get_instance().writeToSerial(wire_request_buf, write_request_size);
 
 	// check if it was written successfully
@@ -81,6 +99,9 @@ void configuration::read() {
 	m_conf.remote_control_max_value_ch1 = static_cast<size_t>(read_reply_buf.get()[4]);
 	m_conf.remote_control_min_value_ch2 = static_cast<size_t>(read_reply_buf.get()[5]);
 	m_conf.remote_control_max_value_ch2 = static_cast<size_t>(read_reply_buf.get()[6]);
+
+	// calculate the r-s-t values in case we write them dowm to the device again if this is a write command
+	update();
 }
 
 /**
@@ -99,4 +120,59 @@ std::ostream &operator<<(std::ostream& os, configuration &c) {
 	os << "Remote Control Min Value = " << static_cast<float>(c.m_conf.remote_control_min_value_ch2) / 250.0f + 1.0f << std::endl;
 	os << "Remote Control Max Value = " << static_cast<float>(c.m_conf.remote_control_max_value_ch2) / 250.0f + 1.0f << std::endl;
 	return os;
+}
+
+/**
+ * @brief update function for updating the r-s-t values for left and right channel delta control
+ */
+void configuration::update() {
+
+	float const neutral_pos = 125.0f;
+	float const min_motor_value = -255.0f * (1<<5);
+	float const max_motor_value = 255.0f * (1<<5);
+
+	// left channel
+	{
+		dim3 const P1(static_cast<float>(m_conf.remote_control_min_value_ch1), neutral_pos, min_motor_value); // CH1, CH2, Motorvalue
+		dim3 const P2(static_cast<float>(m_conf.remote_control_max_value_ch1), neutral_pos, max_motor_value);
+		dim3 const P3(neutral_pos, static_cast<float>(m_conf.remote_control_min_value_ch2), min_motor_value);
+
+		std::cout << "P1 = " << P1 << std::endl;
+
+		calc_RST(m_conf.r1, m_conf.s1, m_conf.t1, P1, P2, P3);
+	}
+	// right channel
+	{
+		dim3 const P1(static_cast<float>(m_conf.remote_control_min_value_ch1), neutral_pos, min_motor_value); // CH1, CH2, Motorvalue
+		dim3 const P2(static_cast<float>(m_conf.remote_control_max_value_ch1), neutral_pos, max_motor_value);
+		dim3 const P3(neutral_pos, static_cast<float>(m_conf.remote_control_max_value_ch2), min_motor_value);
+
+		calc_RST(m_conf.r2, m_conf.s2, m_conf.t2, P1, P2, P3);
+	}
+
+	// debug output
+//	std::cout << "Left Channel:" << std::endl;
+//	std::cout << "r = " << m_conf.r1 << std::endl;
+//	std::cout << "s = " << m_conf.s1 << std::endl;
+//	std::cout << "t = " << m_conf.t1 << std::endl;
+//	std::cout << "Right Channel:" << std::endl;
+//	std::cout << "r = " << m_conf.r2 << std::endl;
+//	std::cout << "s = " << m_conf.s2 << std::endl;
+//	std::cout << "t = " << m_conf.t2 << std::endl;
+}
+
+/**
+ * @brief calculates the r-s-t parameters out of 3 points for the delta mixer parameters
+ */
+void configuration::calc_RST(int &r, int &s, int &t, dim3 const &P1, dim3 const &P2, dim3 const &P3) {
+	dim3 const P1P2 = P1 - P2;
+	dim3 const P1P3 = P1 - P3;
+
+	dim3 const n = dim3::cross(P1P2, P1P3);
+
+	float const d = n.x() * P1.x() + n.y() * P1.y() + n.z() * P1.z();
+
+	r = static_cast<int>(d/n.z());
+	s = static_cast<int>(n.x()/n.z());
+	t = static_cast<int>(n.y()/n.z());
 }
