@@ -17,33 +17,31 @@
     along with antweight_esc_firmware.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-/**
- * @author Alexander Entinger, BSc
- * @brief this file implements the control unit of the firmware, doing the appopriate signal conditioning from the input signals for the motor control
- * @file control.h
- */
-
-#ifndef CONTROL_H_
-#define CONTROL_H_
-
-#include <stdint.h>
-#include <stdbool.h>
-
-typedef enum {TANK = 0, DELTA = 1} E_CONTROL_SELECT;
-	
 /** 
- * @brief initializes the control module
+ * @author Alexander Entinger, BSc
+ * @brief this file implements a linear mapper for two dimensions representing a plane for the delta mixer functionaliaty
+ * @file linear_mapper_2d.c
  */
-void init_control();
+
+#include "linear_mapper_2d.h"
 
 /**
- * @brief callback function called when new data on channel 1 arrived
+ * @brief initializes the linear mapper 2d
+ * @param lm the linear mapper ADT (abstract data type)
+ * @param r,s,t parameters of the mapping function
  */
-void control_ch1_data_callback(uint16_t const pulse_duration);
-	
-/**
- * @brief callback function called when new data on channel 2 arrived
- */
-void control_ch2_data_callback(uint16_t const pulse_duration);
+void init_linear_mapper_2d(linear_mapper_2d *lm, int32_t const r, int32_t const s, int32_t const t) {
+	lm->r = r;
+	lm->s = s;
+	lm->t = t;
+}
 
-#endif /* CONTROL_H_ */
+/**
+ * @brief performs the linear mapping in 2d
+ * @param ch1 input value for channel 1
+ * @param ch1 input value for channel 2
+ * @return mapped output value
+ */
+int32_t linear_map_2d(linear_mapper_2d const * const lm, int16_t const ch1, int16_t const ch2) {
+	return (lm->r - lm->s * ch1 - lm->t * ch2);
+}

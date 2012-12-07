@@ -6,9 +6,13 @@ config.c
 
 control.c
 
+filter.c
+
 input.c
 
 linear_mapper.c
+
+linear_mapper_2d.c
 
 LUFA\Drivers\Board\Temperature.c
 
@@ -137,6 +141,8 @@ LUFA\Platform\UC3\InterruptManagement.c
 main.c
 
 motor_control.c
+
+status_led.c
 
 VirtualSerial\Descriptors.c
 

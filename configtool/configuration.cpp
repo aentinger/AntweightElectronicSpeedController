@@ -44,8 +44,13 @@ configuration::configuration() {
  */
 void configuration::write() {
 	// send the configuration data to the device
+<<<<<<< HEAD
 	size_t const write_request_size = 7 + 3 * sizeof(int); // sizeof(int) = 4; 7 + 3 * 4 = 19
 	unsigned char wire_request_buf[write_request_size] = {0x01, 0x00,
+=======
+	size_t const write_request_size = 7;
+	unsigned char write_request_buf[write_request_size] = {0x01, 0x00,
+>>>>>>> d6695cba4097f67bc2857d6e746d338d4d1c3dc0
 			static_cast<unsigned char>(m_conf.deadzone),
 			static_cast<unsigned char>(m_conf.remote_control_min_value_ch1),
 			static_cast<unsigned char>(m_conf.remote_control_max_value_ch1),
@@ -53,6 +58,7 @@ void configuration::write() {
 			static_cast<unsigned char>(m_conf.remote_control_max_value_ch2),
 			0,0,0,0,0,0,0,0,0,0,0,0};
 
+<<<<<<< HEAD
 	if(m_conf.control == TANK) wire_request_buf[1] |= 0x02;
 
 	// we transmit the r-s-t values in the order R1 R2 S1, since
@@ -70,6 +76,10 @@ void configuration::write() {
 
 	// transmit the data
 	serial::get_instance().writeToSerial(wire_request_buf, write_request_size);
+=======
+	if(m_conf.control == TANK) write_request_buf[1] |= 0x02;
+	serial::get_instance().writeToSerial(write_request_buf, write_request_size);
+>>>>>>> d6695cba4097f67bc2857d6e746d338d4d1c3dc0
 
 	// check if it was written successfully
 	size_t const write_reply_size = 1;

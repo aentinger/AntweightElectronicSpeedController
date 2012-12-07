@@ -107,8 +107,10 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../config.c \
 ../control.c \
+../filter.c \
 ../input.c \
 ../linear_mapper.c \
+../linear_mapper_2d.c \
 ../LUFA/Drivers/Board/Temperature.c \
 ../LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.c \
 ../LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.c \
@@ -172,6 +174,7 @@ C_SRCS +=  \
 ../LUFA/Platform/UC3/InterruptManagement.c \
 ../main.c \
 ../motor_control.c \
+../status_led.c \
 ../VirtualSerial/Descriptors.c \
 ../VirtualSerial/VirtualSerial.c
 
@@ -186,8 +189,10 @@ ASM_SRCS +=
 OBJS +=  \
 config.o \
 control.o \
+filter.o \
 input.o \
 linear_mapper.o \
+linear_mapper_2d.o \
 LUFA/Drivers/Board/Temperature.o \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.o \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.o \
@@ -252,6 +257,7 @@ LUFA/Platform/UC3/Exception.o \
 LUFA/Platform/UC3/InterruptManagement.o \
 main.o \
 motor_control.o \
+status_led.o \
 VirtualSerial/Descriptors.o \
 VirtualSerial/VirtualSerial.o
 
@@ -259,8 +265,10 @@ VirtualSerial/VirtualSerial.o
 OBJS_AS_ARGS +=  \
 config.o \
 control.o \
+filter.o \
 input.o \
 linear_mapper.o \
+linear_mapper_2d.o \
 LUFA/Drivers/Board/Temperature.o \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.o \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.o \
@@ -325,6 +333,7 @@ LUFA/Platform/UC3/Exception.o \
 LUFA/Platform/UC3/InterruptManagement.o \
 main.o \
 motor_control.o \
+status_led.o \
 VirtualSerial/Descriptors.o \
 VirtualSerial/VirtualSerial.o
 
@@ -332,8 +341,10 @@ VirtualSerial/VirtualSerial.o
 C_DEPS +=  \
 config.d \
 control.d \
+filter.d \
 input.d \
 linear_mapper.d \
+linear_mapper_2d.d \
 LUFA/Drivers/Board/Temperature.d \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.d \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.d \
@@ -397,6 +408,7 @@ LUFA/Drivers/USB/Core/XMEGA/USBInterrupt_XMEGA.d \
 LUFA/Platform/UC3/InterruptManagement.d \
 main.d \
 motor_control.d \
+status_led.d \
 VirtualSerial/Descriptors.d \
 VirtualSerial/VirtualSerial.d
 
@@ -404,8 +416,10 @@ VirtualSerial/VirtualSerial.d
 C_DEPS_AS_ARGS +=  \
 config.d \
 control.d \
+filter.d \
 input.d \
 linear_mapper.d \
+linear_mapper_2d.d \
 LUFA/Drivers/Board/Temperature.d \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.d \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.d \
@@ -469,6 +483,7 @@ LUFA/Drivers/USB/Core/XMEGA/USBInterrupt_XMEGA.d \
 LUFA/Platform/UC3/InterruptManagement.d \
 main.d \
 motor_control.d \
+status_led.d \
 VirtualSerial/Descriptors.d \
 VirtualSerial/VirtualSerial.d
 
@@ -482,6 +497,12 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:= ./makedep.mk
 
 # AVR32/GNU C Compiler
+
+
+
+
+
+
 
 
 

@@ -18,32 +18,36 @@
 */
 
 /**
- * @author Alexander Entinger, BSc
- * @brief this file implements the control unit of the firmware, doing the appopriate signal conditioning from the input signals for the motor control
- * @file control.h
- */
+* @author Alexander Entinger, BSc
+* @brief this module controls the status led of the esc
+* @file status_led.c
+*/
 
-#ifndef CONTROL_H_
-#define CONTROL_H_
+#include <avr/io.h>
+#include "status_led.h"
 
-#include <stdint.h>
-#include <stdbool.h>
+#define LED_DDR		(DDRC)
+#define LED_PORT	(PORTC)
+#define LED_NR		(2)
 
-typedef enum {TANK = 0, DELTA = 1} E_CONTROL_SELECT;
-	
 /** 
- * @brief initializes the control module
+ * @brief initialize the status led
  */
-void init_control();
+void init_status_led() {
+	LED_DDR  |= (1<<LED_NR);
+	LED_PORT |= (1<<LED_NR);
+}
 
-/**
- * @brief callback function called when new data on channel 1 arrived
+/** 
+ * @brief turn status led on
  */
-void control_ch1_data_callback(uint16_t const pulse_duration);
-	
-/**
- * @brief callback function called when new data on channel 2 arrived
- */
-void control_ch2_data_callback(uint16_t const pulse_duration);
+void status_led_turn_on() {
+	LED_PORT &= ~(1<<LED_NR);
+}
 
-#endif /* CONTROL_H_ */
+/** 
+ * @brief turn status led off
+ */
+void status_led_turn_off() {
+	LED_PORT |= (1<<LED_NR);
+}
