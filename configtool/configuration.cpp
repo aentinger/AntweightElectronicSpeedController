@@ -128,20 +128,18 @@ std::ostream &operator<<(std::ostream& os, configuration &c) {
 void configuration::update() {
 
 	float const neutral_pos = 125.0f;
-	float const min_motor_value = -255.0f * (1<<5);
+	float const min_motor_value = -255.0f* (1<<5);
 	float const max_motor_value = 255.0f * (1<<5);
 
-	// left channel
+	// channel 1
 	{
 		dim3 const P1(static_cast<float>(m_conf.remote_control_min_value_ch1), neutral_pos, min_motor_value); // CH1, CH2, Motorvalue
 		dim3 const P2(static_cast<float>(m_conf.remote_control_max_value_ch1), neutral_pos, max_motor_value);
 		dim3 const P3(neutral_pos, static_cast<float>(m_conf.remote_control_min_value_ch2), min_motor_value);
 
-		std::cout << "P1 = " << P1 << std::endl;
-
 		calc_RST(m_conf.r1, m_conf.s1, m_conf.t1, P1, P2, P3);
 	}
-	// right channel
+	// channel 2
 	{
 		dim3 const P1(static_cast<float>(m_conf.remote_control_min_value_ch1), neutral_pos, min_motor_value); // CH1, CH2, Motorvalue
 		dim3 const P2(static_cast<float>(m_conf.remote_control_max_value_ch1), neutral_pos, max_motor_value);
@@ -151,14 +149,15 @@ void configuration::update() {
 	}
 
 	// debug output
-//	std::cout << "Left Channel:" << std::endl;
-//	std::cout << "r = " << m_conf.r1 << std::endl;
-//	std::cout << "s = " << m_conf.s1 << std::endl;
-//	std::cout << "t = " << m_conf.t1 << std::endl;
-//	std::cout << "Right Channel:" << std::endl;
-//	std::cout << "r = " << m_conf.r2 << std::endl;
-//	std::cout << "s = " << m_conf.s2 << std::endl;
-//	std::cout << "t = " << m_conf.t2 << std::endl;
+/*	std::cout << "Channel 1:" << std::endl;
+	std::cout << "r = " << m_conf.r1 << std::endl;
+	std::cout << "s = " << m_conf.s1 << std::endl;
+	std::cout << "t = " << m_conf.t1 << std::endl;
+	std::cout << "Channel 2:" << std::endl;
+	std::cout << "r = " << m_conf.r2 << std::endl;
+	std::cout << "s = " << m_conf.s2 << std::endl;
+	std::cout << "t = " << m_conf.t2 << std::endl;
+*/
 }
 
 /**
