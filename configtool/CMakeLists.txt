@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 2.6)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+find_package(Boost)
+if(Boost_FOUND)
+	include_directories(${Boost_INCLUDE_DIRS})
+	file(MAKE_DIRECTORY lib)
+	add_library(arduinoio STATIC src/analogPin.cpp src/counterPin.cpp src/gpioInputPin.cpp src/gpioOutputPin.cpp src/i2cBridge.cpp src/ioboard.cpp src/ioentity.cpp src/pin.cpp src/serial.cpp src/servo.cpp src/tags.cpp)
+endif()
