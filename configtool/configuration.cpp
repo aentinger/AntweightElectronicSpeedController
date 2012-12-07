@@ -45,8 +45,6 @@ configuration::configuration() {
 void configuration::write() {
 	// send the configuration data to the device
 	size_t const write_request_size = 7 + 3 * sizeof(int); // sizeof(int) = 4; 7 + 3 * 4 = 19
-	unsigned char wire_request_buf[write_request_size] = {0x01, 0x00,
-	size_t const write_request_size = 7;
 	unsigned char write_request_buf[write_request_size] = {0x01, 0x00,
 			static_cast<unsigned char>(m_conf.deadzone),
 			static_cast<unsigned char>(m_conf.remote_control_min_value_ch1),
@@ -55,7 +53,7 @@ void configuration::write() {
 			static_cast<unsigned char>(m_conf.remote_control_max_value_ch2),
 			0,0,0,0,0,0,0,0,0,0,0,0};
 
-			if(m_conf.control == TANK) wire_request_buf[1] |= 0x02;
+	if(m_conf.control == TANK) write_request_buf[1] |= 0x02;
 
 	// we transmit the r-s-t values in the order R1 R2 S1, since
 	// T1 = S1
@@ -64,14 +62,14 @@ void configuration::write() {
 
 	// convert r-s-t values to network-byte-order to provide guaranteed big-endianess
 	unsigned int const R1 = htonl(m_conf.r1);
-	memcpy(wire_request_buf + 7, &R1, sizeof(int));
+	memcpy(write_request_buf + 7, &R1, sizeof(int));
 	unsigned int const R2 = htonl(m_conf.r2);
-	memcpy(wire_request_buf + 7 + sizeof(int), &R2, sizeof(int));
+	memcpy(write_request_buf + 7 + sizeof(int), &R2, sizeof(int));
 	unsigned int const S1 = htonl(m_conf.s1);
-	memcpy(wire_request_buf + 7 + 2 * sizeof(int), &S1, sizeof(int));
+	memcpy(write_request_buf + 7 + 2 * sizeof(int), &S1, sizeof(int));
 
 	// transmit the data
-	serial::get_instance().writeToSerial(wire_request_buf, write_request_size);
+	serial::get_instance().writeToSerial(write_request_buf, write_request_size);
 
 	// check if it was written successfully
 	size_t const write_reply_size = 1;
