@@ -1,3 +1,22 @@
+/*
+	Copyright 2013 by Alexander Entinger, BSc
+
+    This file is part of antweight_esc_firmware.
+
+    antweight_esc_firmware is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    antweight_esc_firmware is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with antweight_esc_firmware.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /**
  * @author Alexander Entinger, BSc
  * @brief this file represents the configuration data handling of the esc
@@ -20,7 +39,6 @@ void init_config() {
 	eeprom_read_block((void*)(&configuration), CONFIG_EEPROM_ADDRESS, sizeof(configuration));
 	if(configuration.eeprom_written == EEPROM_NOT_WRITTEN) { // device was previously not configured, setting to standard values
 		configuration.eeprom_written = EEPROM_WRITTEN;
-		configuration.enable_boost = true;
 		configuration.control = TANK;
 		configuration.deadzone = 5;
 		configuration.remote_control_min_value_ch_1 = 0;
@@ -31,14 +49,17 @@ void init_config() {
 	}
 }
 
-#define S_REQUEST_KIND		(0x00)
-#define S_WRITE_CONFIG		(0x01)
-#define S_WRITE_DEADZONE	(0x02)
+#define S_REQUEST_KIND		(0)
+#define S_WRITE_CONFIG		(1)
+#define S_WRITE_DEADZONE	(2)
+#define S_WRITE_CH1_MIN		(3)
+#define S_WRITE_CH1_MAX		(4)
+#define S_WRITE_CH2_MIN		(5)
+#define S_WRITE_CH2_MAX		(6)
 
 #define	S_REQUEST_KIND_READ			(0x00)
 #define	S_REQUEST_KIND_WRITE		(0x01)
 
-#define S_CONFIG_ENABLE_BOOST_MASK	(1<<0)
 #define S_CONFIG_CONTROL_MASK		(1<<1)
 
 #define MSG_OK			(0x01)
@@ -52,7 +73,7 @@ static uint8_t config_parse_state = S_REQUEST_KIND;
  */
 void config_parse_data(uint8_t const data_byte, bool *config_done_ptr) {
 	
-	static volatile uint8_t msg[3];
+	static volatile uint8_t msg[7];
 	
 	switch(config_parse_state) {
 		case S_REQUEST_KIND: {
@@ -61,13 +82,16 @@ void config_parse_data(uint8_t const data_byte, bool *config_done_ptr) {
 				// configuration is now done here
 				*config_done_ptr = true;
 				// generate read reply message
-				uint8_t msg_reply[3] = {0x00};
+				uint8_t msg_reply[7] = {0x00};
 				msg_reply[0] = MSG_OK;
-				if(configuration.enable_boost) msg_reply[1] |= S_CONFIG_ENABLE_BOOST_MASK;
 				if(configuration.control == TANK) msg_reply[1] |= S_CONFIG_CONTROL_MASK;
 				msg_reply[2] = configuration.deadzone;
+				msg_reply[3] = configuration.remote_control_min_value_ch_1;
+				msg_reply[4] = configuration.remote_control_max_value_ch_1;
+				msg_reply[5] = configuration.remote_control_min_value_ch_2;
+				msg_reply[6] = configuration.remote_control_max_value_ch_2;
 				// send read reply message
-				virtual_serial_send_data(&msg_reply, 3);					
+				virtual_serial_send_data(&msg_reply, 7);					
 			} else if(msg[S_REQUEST_KIND] == S_REQUEST_KIND_WRITE) {
 				config_parse_state = S_WRITE_CONFIG;
 			}			
@@ -79,23 +103,43 @@ void config_parse_data(uint8_t const data_byte, bool *config_done_ptr) {
 		} break;
 		case S_WRITE_DEADZONE: {
 			msg[S_WRITE_DEADZONE] = data_byte;
+			config_parse_state = S_WRITE_CH1_MIN;
+		} break;
+		case S_WRITE_CH1_MIN: {
+			msg[S_WRITE_CH1_MIN] = data_byte;
+			config_parse_state = S_WRITE_CH1_MAX;
+		} break;
+		case S_WRITE_CH1_MAX: {
+			msg[S_WRITE_CH1_MAX] = data_byte;
+			config_parse_state = S_WRITE_CH2_MIN;
+		} break;
+		case S_WRITE_CH2_MIN: {
+			msg[S_WRITE_CH2_MIN] = data_byte;
+			config_parse_state = S_WRITE_CH2_MAX;
+		} break;
+		case S_WRITE_CH2_MAX: {
+			msg[S_WRITE_CH2_MAX] = data_byte;
+			config_parse_state = S_REQUEST_KIND;
+			
 			// configuration byte
-			if(msg[S_WRITE_CONFIG] & S_CONFIG_ENABLE_BOOST_MASK) configuration.enable_boost = true;
-			else configuration.enable_boost = false;
 			if(msg[S_WRITE_CONFIG] & S_CONFIG_CONTROL_MASK) configuration.control = TANK;
 			else configuration.control = DELTA;
 			// deadzone byte
 			configuration.deadzone = msg[S_WRITE_DEADZONE];
+			// channel 1 min and maximum values
+			configuration.remote_control_min_value_ch_1 = msg[S_WRITE_CH1_MIN];
+			configuration.remote_control_max_value_ch_1 = msg[S_WRITE_CH1_MAX];
+			// channel 2 min and maximum values
+			configuration.remote_control_min_value_ch_2 = msg[S_WRITE_CH2_MIN];
+			configuration.remote_control_max_value_ch_2 = msg[S_WRITE_CH2_MAX];
 			// write data to eeprom
 			eeprom_write_block((void*)(&configuration), CONFIG_EEPROM_ADDRESS, sizeof(configuration));
 			// configuration is now done here
-			config_parse_state = S_REQUEST_KIND;
 			*config_done_ptr = true;
 			// send answer
 			uint8_t msg_reply = MSG_OK;
 			virtual_serial_send_data(&msg_reply, 1);
-		} break;
-		
+		} break;		
 		default: {
 			config_parse_state = S_REQUEST_KIND;
 		} break;

@@ -1,3 +1,22 @@
+/*
+	Copyright 2013 by Alexander Entinger, BSc
+
+    This file is part of antweight_esc_firmware.
+
+    antweight_esc_firmware is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    antweight_esc_firmware is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with antweight_esc_firmware.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 /**
 * @author Alexander Entinger, BSc
 * @brief this file implements the control unit of the firmware, doing the appopriate signal conditioning from the input signals for the motor control
@@ -77,23 +96,39 @@ void control_update() {
 
 		// CHANNEL 1
 		if(m_ch_value[CH1] > MIDDLE_VALUE_CH1) { // drive forward
-			uint16_t const speed = (uint16_t)(linear_map(&map_ch1_fwd, m_ch_value[CH1]));
-			if((speed<<5) > configuration.deadzone) set_pwm_motor_left(FWD, speed);
+			int16_t speed = (linear_map(&map_ch1_fwd, m_ch_value[CH1]));
+			speed >>= 5;
+			if(speed < 0) speed = 0;
+			else if(speed > 255) speed = 255;
+			
+			if(speed > configuration.deadzone) set_pwm_motor_left(FWD, (uint8_t)(speed));
 			else set_pwm_motor_left(FWD, 0);
 		} else {
-			int16_t const speed = (uint16_t)(linear_map(&map_ch1_bwd, m_ch_value[CH1]));
-			if((speed<<5) > configuration.deadzone) set_pwm_motor_left(BWD, speed);
+			int16_t speed = (linear_map(&map_ch1_bwd, m_ch_value[CH1]));
+			speed >>= 5;
+			if(speed < 0) speed = 0;
+			else if(speed > 255) speed = 255;
+			
+			if(speed > configuration.deadzone) set_pwm_motor_left(BWD, (uint8_t)(speed));
 			else set_pwm_motor_left(BWD, 0);
 		}
 		// CHANNEL 2
 		set_pwm_motor_right(FWD, 0);
 		if(m_ch_value[CH2] > MIDDLE_VALUE_CH2) { // drive forward
-			uint16_t const speed = (uint16_t)(linear_map(&map_ch2_fwd, m_ch_value[CH2]));
-			if((speed<<5) > configuration.deadzone) set_pwm_motor_right(FWD, speed);
+			int16_t speed = (linear_map(&map_ch2_fwd, m_ch_value[CH2]));
+			speed >>= 5;
+			if(speed < 0) speed = 0;
+			else if(speed > 255) speed = 255;
+			
+			if(speed > configuration.deadzone) set_pwm_motor_right(FWD, (uint8_t)(speed));
 			else set_pwm_motor_right(FWD, 0);
 		} else {
-			uint16_t const speed = (uint16_t)(linear_map(&map_ch2_bwd, m_ch_value[CH2]));
-			if((speed<<5) > configuration.deadzone) set_pwm_motor_right(BWD, speed);
+			int16_t speed = (linear_map(&map_ch2_bwd, m_ch_value[CH2]));
+			speed >>= 5;
+			if(speed < 0) speed = 0;
+			else if(speed > 255) speed = 255;
+			
+			if(speed > configuration.deadzone) set_pwm_motor_right(BWD, (uint8_t)(speed));
 			else set_pwm_motor_right(BWD, 0);
 		}			
 			
