@@ -42,7 +42,7 @@ volatile bool do_calibration_of_neutral_position = false;
 */
 void init_application();
 
-typedef enum {INIT = 0, ACTIVE = 1, FAILSAFE = 2, CONFIG = 3, ERROR = 4} E_FIRMWARE_STATE;
+typedef enum {INIT = 0, ACTIVE = 1, CALIBRATION = 2, FAILSAFE = 3, CONFIG = 4, ERROR = 5} E_FIRMWARE_STATE;
 
 int main(void) {
 	
@@ -63,17 +63,20 @@ int main(void) {
 						firmware_state = CONFIG;
 						break;
 					}
-				} 
+				}				 
 				if(firmware_state == INIT) {
-					// now do the calibration, set the config flag
-					do_calibration_of_neutral_position = true;
-					while(do_calibration_of_neutral_position) {
-						// wait for calibration to be done
-					}
-					// and switch over to avtive state
-					firmware_state = ACTIVE;
-				} // else we switch over to the config mode
+					firmware_state = CALIBRATION;
+				}
 			}	break;
+			case CALIBRATION: {
+				// now do the calibration, set the config flag
+				do_calibration_of_neutral_position = true;
+				while(do_calibration_of_neutral_position) {
+					// wait for calibration to be done
+				}
+				// and switch over to avtive state
+				firmware_state = ACTIVE;
+			} break;
 			case ACTIVE: {
 				// the input signals are switch to the output signals depending on the driving mode (tank or v mixer)
 				// monitor the signals, if there are no pulses on both channels for 5 periods switch to failsafe mode
