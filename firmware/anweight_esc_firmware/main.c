@@ -133,6 +133,9 @@ void init_application() {
 	// initialize motor control
 	init_motor_control();
 	
+	// init the contro module
+	init_control();
+	
 	// initialize the input module and register the callbacks
 	init_input(control_ch1_data_callback, control_ch2_data_callback);
 	

@@ -19,31 +19,36 @@
 
 /**
  * @author Alexander Entinger, BSc
- * @brief this file implements the control unit of the firmware, doing the appopriate signal conditioning from the input signals for the motor control
- * @file control.h
+ * @brief this file implements a filter for the input signals
+ * @file filter.h
  */
 
-#ifndef CONTROL_H_
-#define CONTROL_H_
+#ifndef FILTER_H_
+#define FILTER_H_
 
 #include <stdint.h>
-#include <stdbool.h>
 
-typedef enum {TANK = 0, DELTA = 1} E_CONTROL_SELECT;
-	
+// definition of adt filter
+typedef struct filter {
+	uint16_t *p_data;
+	uint8_t size;
+	uint8_t pos;
+} filter;
+
 /** 
- * @brief initializes the control module
+ * @brief create a filter with the the size 'size' and initializes the values with the value 'init_value'
  */
-void init_control();
+void init_filter(filter *f, uint8_t const size, uint16_t const init_value);
 
 /**
- * @brief callback function called when new data on channel 1 arrived
+ * @brief adds the value val to the filter
  */
-void control_ch1_data_callback(uint16_t const pulse_duration);
-	
-/**
- * @brief callback function called when new data on channel 2 arrived
- */
-void control_ch2_data_callback(uint16_t const pulse_duration);
+void filter_add_value(filter *f, uint16_t const val);
 
-#endif /* CONTROL_H_ */
+/**
+ * @brief returns the filtered value
+ */
+uint16_t filter_get_value(filter *f);
+
+
+#endif /* FILTER_H_ */

@@ -6,6 +6,8 @@ config.c
 
 control.c
 
+filter.c
+
 input.c
 
 linear_mapper.c

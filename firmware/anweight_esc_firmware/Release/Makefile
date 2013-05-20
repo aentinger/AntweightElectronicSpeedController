@@ -107,6 +107,7 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../config.c \
 ../control.c \
+../filter.c \
 ../input.c \
 ../linear_mapper.c \
 ../LUFA/Drivers/Board/Temperature.c \
@@ -186,6 +187,7 @@ ASM_SRCS +=
 OBJS +=  \
 config.o \
 control.o \
+filter.o \
 input.o \
 linear_mapper.o \
 LUFA/Drivers/Board/Temperature.o \
@@ -259,6 +261,7 @@ VirtualSerial/VirtualSerial.o
 OBJS_AS_ARGS +=  \
 config.o \
 control.o \
+filter.o \
 input.o \
 linear_mapper.o \
 LUFA/Drivers/Board/Temperature.o \
@@ -332,6 +335,7 @@ VirtualSerial/VirtualSerial.o
 C_DEPS +=  \
 config.d \
 control.d \
+filter.d \
 input.d \
 linear_mapper.d \
 LUFA/Drivers/Board/Temperature.d \
@@ -404,6 +408,7 @@ VirtualSerial/VirtualSerial.d
 C_DEPS_AS_ARGS +=  \
 config.d \
 control.d \
+filter.d \
 input.d \
 linear_mapper.d \
 LUFA/Drivers/Board/Temperature.d \
@@ -482,6 +487,8 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:= ./makedep.mk
 
 # AVR32/GNU C Compiler
+
+
 
 
 
