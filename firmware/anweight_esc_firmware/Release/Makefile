@@ -173,6 +173,7 @@ C_SRCS +=  \
 ../LUFA/Platform/UC3/InterruptManagement.c \
 ../main.c \
 ../motor_control.c \
+../status_led.c \
 ../VirtualSerial/Descriptors.c \
 ../VirtualSerial/VirtualSerial.c
 
@@ -254,6 +255,7 @@ LUFA/Platform/UC3/Exception.o \
 LUFA/Platform/UC3/InterruptManagement.o \
 main.o \
 motor_control.o \
+status_led.o \
 VirtualSerial/Descriptors.o \
 VirtualSerial/VirtualSerial.o
 
@@ -328,6 +330,7 @@ LUFA/Platform/UC3/Exception.o \
 LUFA/Platform/UC3/InterruptManagement.o \
 main.o \
 motor_control.o \
+status_led.o \
 VirtualSerial/Descriptors.o \
 VirtualSerial/VirtualSerial.o
 
@@ -401,6 +404,7 @@ LUFA/Drivers/USB/Core/XMEGA/USBInterrupt_XMEGA.d \
 LUFA/Platform/UC3/InterruptManagement.d \
 main.d \
 motor_control.d \
+status_led.d \
 VirtualSerial/Descriptors.d \
 VirtualSerial/VirtualSerial.d
 
@@ -474,6 +478,7 @@ LUFA/Drivers/USB/Core/XMEGA/USBInterrupt_XMEGA.d \
 LUFA/Platform/UC3/InterruptManagement.d \
 main.d \
 motor_control.d \
+status_led.d \
 VirtualSerial/Descriptors.d \
 VirtualSerial/VirtualSerial.d
 
@@ -487,6 +492,8 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:= ./makedep.mk
 
 # AVR32/GNU C Compiler
+
+
 
 
 

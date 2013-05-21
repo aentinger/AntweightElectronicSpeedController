@@ -1085,6 +1085,12 @@
     <Compile Include="motor_control.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="status_led.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="status_led.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="VirtualSerial\Descriptors.c">
       <SubType>compile</SubType>
     </Compile>

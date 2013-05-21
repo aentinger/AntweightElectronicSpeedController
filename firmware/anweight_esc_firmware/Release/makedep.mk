@@ -140,6 +140,8 @@ main.c
 
 motor_control.c
 
+status_led.c
+
 VirtualSerial\Descriptors.c
 
 VirtualSerial\VirtualSerial.c

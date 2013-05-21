@@ -30,6 +30,7 @@
 #include "input.h"
 #include "control.h"
 #include "config.h"
+#include "status_led.h"
 #include "VirtualSerial/VirtualSerial.h"
 
 // configuration structure
@@ -81,13 +82,18 @@ int main(void) {
 				// the input signals are switch to the output signals depending on the driving mode (tank or v mixer)
 				// monitor the signals, if there are no pulses on both channels for 5 periods switch to failsafe mode
 				enable_motors();
+				// turn on status led to signalize operation
+				status_led_turn_on();
 				while(input_good()) {
 					// do the control stuff here, since its interrupt controlled nothing to do here anymore
 				}
 				firmware_state = FAILSAFE; // input channels are bad, switch to failsafe
 			} break;
 			case FAILSAFE: {
+				// we are in failsafe, so switch of the output channels
 				disable_motors();
+				// also turn off status led to signal that we are not in active state anylonger
+				status_led_turn_off();
 				while(!input_good()) {
 					// wait until the signals are back up, if thats the case switch back to active
 				}
@@ -113,7 +119,10 @@ int main(void) {
 			case ERROR: {
 				// if we should land hear, whatever the reason, switch all output off
 				disable_motors();
+				// turn status led off, no valid operation mode
+				status_led_turn_off();
 				// no way leads out of here
+				for(;;) { asm("NOP"); }
 			} break;
 			default: {
 				firmware_state = ERROR;
@@ -141,6 +150,9 @@ void init_application() {
 	
 	// initialize the virtual serial
 	init_virtual_serial();
+	
+	// initialize the status led
+	init_status_led();
 	
 	// enable globally interrupts
 	sei();
