@@ -43,15 +43,15 @@ configuration::configuration() {
 void configuration::write() {
 	// send the configuration data to the device
 	size_t const write_request_size = 7;
-	unsigned char wire_request_buf[write_request_size] = {0x01, 0x00,
+	unsigned char write_request_buf[write_request_size] = {0x01, 0x00,
 			static_cast<unsigned char>(m_conf.deadzone),
 			static_cast<unsigned char>(m_conf.remote_control_min_value_ch1),
 			static_cast<unsigned char>(m_conf.remote_control_max_value_ch1),
 			static_cast<unsigned char>(m_conf.remote_control_min_value_ch2),
 			static_cast<unsigned char>(m_conf.remote_control_max_value_ch2)};
 
-	if(m_conf.control == TANK) wire_request_buf[1] |= 0x02;
-	serial::get_instance().writeToSerial(wire_request_buf, write_request_size);
+	if(m_conf.control == TANK) write_request_buf[1] |= 0x02;
+	serial::get_instance().writeToSerial(write_request_buf, write_request_size);
 
 	// check if it was written successfully
 	size_t const write_reply_size = 1;
