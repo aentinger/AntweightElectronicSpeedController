@@ -1,20 +1,20 @@
 /*
-	Copyright 2013 by Alexander Entinger, BSc
+Copyright 2013 by Alexander Entinger, BSc
 
-    This file is part of antweight_esc_firmware.
+This file is part of antweight_esc_firmware.
 
-    antweight_esc_firmware is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+antweight_esc_firmware is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    antweight_esc_firmware is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+antweight_esc_firmware is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with antweight_esc_firmware.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU General Public License
+along with antweight_esc_firmware.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /**
@@ -27,6 +27,7 @@
 #include "motor_control.h"
 #include "config.h"
 #include "linear_mapper.h"
+#include "linear_mapper_2d.h"
 #include "filter.h"
 
 // calibration flag for defining when calibration of neutral position is done
@@ -37,6 +38,8 @@ typedef enum {CH1 = 0, CH2 = 1} E_CHANNEL_SELECT;
 static uint16_t const MAX_CHANNEL_VALUE = 500; // max 2 ms pulsewidth
 // adt data for the linear mapper
 static linear_mapper map_ch1_fwd, map_ch1_bwd, map_ch2_fwd, map_ch2_bwd;
+// adt date for the linear mapper in 2 dimensions
+static linear_mapper_2d map_motor_left_2d, map_motor_right_2d;
 // adt data for the filter
 static filter filt[2];
 	
@@ -55,6 +58,9 @@ uint8_t speed_conditioning(int16_t const s);
 void init_control() {
 	init_filter(&filt[CH1], 4, 125);
 	init_filter(&filt[CH2], 4, 125);
+	
+	init_linear_mapper_2d(&map_motor_left_2d, -510, -2, -2);
+	init_linear_mapper_2d(&map_motor_right_2d, 0, -2, 2);
 }
 
 /**
@@ -148,6 +154,34 @@ void control_update() {
 	/* DELTA DRIVE                                                          */
 	/************************************************************************/
 	} else if(configuration.control == DELTA) {
+		// motor left
+		{
+			int32_t speed = linear_map_2d(&map_motor_left_2d, m_ch_value[CH1], m_ch_value[CH2]);
+			if(speed > 0) {
+				if(speed > 255) speed = 255;
+				if(speed > configuration.deadzone) set_pwm_motor_left(FWD, (uint8_t)(speed));
+				else set_pwm_motor_left(FWD, 0);			
+			} else {
+				if(speed < -255) speed = -255;
+				speed = 0 - speed; // * (-1)
+				if(speed > configuration.deadzone) set_pwm_motor_left(BWD, (uint8_t)(speed));
+				else set_pwm_motor_left(BWD, 0);
+			}
+		}		
+		// motor right
+		{
+			int32_t speed = linear_map_2d(&map_motor_right_2d, m_ch_value[CH1], m_ch_value[CH2]);
+			if(speed > 0) {
+				if(speed > 255) speed = 255;
+				if(speed > configuration.deadzone) set_pwm_motor_right(FWD, (uint8_t)(speed));
+				else set_pwm_motor_right(FWD, 0);
+			} else {
+				if(speed < -255) speed = -255;
+				speed = 0 - speed; // * (-1)
+				if(speed > configuration.deadzone) set_pwm_motor_right(BWD, (uint8_t)(speed));
+				else set_pwm_motor_right(BWD, 0);
+			}
+		}
 		
 	}
 }

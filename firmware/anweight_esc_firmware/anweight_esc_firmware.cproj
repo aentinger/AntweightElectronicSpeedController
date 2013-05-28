@@ -188,6 +188,12 @@
     <Compile Include="linear_mapper.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="linear_mapper_2d.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="linear_mapper_2d.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="LUFA\Common\Architectures.h">
       <SubType>compile</SubType>
     </Compile>

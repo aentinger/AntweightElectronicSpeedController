@@ -110,6 +110,7 @@ C_SRCS +=  \
 ../filter.c \
 ../input.c \
 ../linear_mapper.c \
+../linear_mapper_2d.c \
 ../LUFA/Drivers/Board/Temperature.c \
 ../LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.c \
 ../LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.c \
@@ -191,6 +192,7 @@ control.o \
 filter.o \
 input.o \
 linear_mapper.o \
+linear_mapper_2d.o \
 LUFA/Drivers/Board/Temperature.o \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.o \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.o \
@@ -266,6 +268,7 @@ control.o \
 filter.o \
 input.o \
 linear_mapper.o \
+linear_mapper_2d.o \
 LUFA/Drivers/Board/Temperature.o \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.o \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.o \
@@ -341,6 +344,7 @@ control.d \
 filter.d \
 input.d \
 linear_mapper.d \
+linear_mapper_2d.d \
 LUFA/Drivers/Board/Temperature.d \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.d \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.d \
@@ -415,6 +419,7 @@ control.d \
 filter.d \
 input.d \
 linear_mapper.d \
+linear_mapper_2d.d \
 LUFA/Drivers/Board/Temperature.d \
 LUFA/Drivers/Peripheral/AVR8/Serial_AVR8.d \
 LUFA/Drivers/Peripheral/AVR8/TWI_AVR8.d \
@@ -492,6 +497,8 @@ ADDITIONAL_DEPENDENCIES:=
 OUTPUT_FILE_DEP:= ./makedep.mk
 
 # AVR32/GNU C Compiler
+
+
 
 
 

@@ -12,6 +12,8 @@ input.c
 
 linear_mapper.c
 
+linear_mapper_2d.c
+
 LUFA\Drivers\Board\Temperature.c
 
 LUFA\Drivers\Peripheral\AVR8\Serial_AVR8.c
