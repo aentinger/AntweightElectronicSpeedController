@@ -103,20 +103,24 @@ uint8_t speed_conditioning(int16_t const s) {
  */
 void control_update() {
 	// initial middle value of the channels
-	static int16_t MIDDLE_VALUE_CH1 = 125;
-	static int16_t MIDDLE_VALUE_CH2 = 125;
+	static int16_t MIDDLE_VALUE_CH[2] = {125, 125};
+	// values for calibrating offsets from the middle value in delta mode
+	static int16_t OFFSET_CH[2] = {0,0};
 	
 	// do the calibration of the neutral position
 	if(do_calibration_of_neutral_position) {
-		MIDDLE_VALUE_CH1 = filter_get_value(&filt[CH1]);
-		MIDDLE_VALUE_CH2 = filter_get_value(&filt[CH2]);
+		MIDDLE_VALUE_CH[CH1] = filter_get_value(&filt[CH1]);
+		MIDDLE_VALUE_CH[CH2] = filter_get_value(&filt[CH2]);
 		// configuration done
 		do_calibration_of_neutral_position = false;	
 		// adjust the linear mapping modules
-		init_linear_mapper(&map_ch1_bwd, configuration.remote_control_min_value_ch_1, MIDDLE_VALUE_CH1, MAX_MOTOR_VALUE, 0);
-		init_linear_mapper(&map_ch1_fwd, MIDDLE_VALUE_CH1, configuration.remote_control_max_value_ch_1, 0, MAX_MOTOR_VALUE);
-		init_linear_mapper(&map_ch2_bwd, configuration.remote_control_min_value_ch_2, MIDDLE_VALUE_CH2, MAX_MOTOR_VALUE, 0);
-		init_linear_mapper(&map_ch2_fwd, MIDDLE_VALUE_CH2, configuration.remote_control_max_value_ch_2, 0, MAX_MOTOR_VALUE);
+		init_linear_mapper(&map_ch1_bwd, configuration.remote_control_min_value_ch_1, MIDDLE_VALUE_CH[CH1], MAX_MOTOR_VALUE, 0);
+		init_linear_mapper(&map_ch1_fwd, MIDDLE_VALUE_CH[CH1], configuration.remote_control_max_value_ch_1, 0, MAX_MOTOR_VALUE);
+		init_linear_mapper(&map_ch2_bwd, configuration.remote_control_min_value_ch_2, MIDDLE_VALUE_CH[CH2], MAX_MOTOR_VALUE, 0);
+		init_linear_mapper(&map_ch2_fwd, MIDDLE_VALUE_CH[CH2], configuration.remote_control_max_value_ch_2, 0, MAX_MOTOR_VALUE);
+		// calculate offset values for correcting offsets in delta mode
+		OFFSET_CH[CH1] = (int16_t)(125) - MIDDLE_VALUE_CH[CH1];
+		OFFSET_CH[CH2] = (int16_t)(125) - MIDDLE_VALUE_CH[CH2];
 		// exit function here
 		return;
 	}
@@ -127,9 +131,8 @@ void control_update() {
 	/* TANK DRIVE                                                           */
 	/************************************************************************/
 	if(configuration.control == TANK) {
-
-		// CHANNEL 1
-		if(m_ch_value[CH1] > MIDDLE_VALUE_CH1) { // drive forward
+		// Motor Left
+		if(m_ch_value[CH1] > MIDDLE_VALUE_CH[CH1]) { // drive forward
 			uint8_t const speed = speed_conditioning(linear_map(&map_ch1_fwd, m_ch_value[CH1]));
 			if(speed > configuration.deadzone) set_pwm_motor_left(FWD, speed);
 			else set_pwm_motor_left(FWD, 0);
@@ -138,9 +141,9 @@ void control_update() {
 			if(speed > configuration.deadzone) set_pwm_motor_left(BWD, speed);
 			else set_pwm_motor_left(BWD, 0);
 		}
-		// CHANNEL 2
+		// Motor Right
 		set_pwm_motor_right(FWD, 0);
-		if(m_ch_value[CH2] > MIDDLE_VALUE_CH2) { // drive forward
+		if(m_ch_value[CH2] > MIDDLE_VALUE_CH[CH2]) { // drive forward
 			uint8_t const speed = speed_conditioning(linear_map(&map_ch2_fwd, m_ch_value[CH2]));
 			if(speed > configuration.deadzone) set_pwm_motor_right(FWD, speed);
 			else set_pwm_motor_right(FWD, 0);
@@ -154,9 +157,9 @@ void control_update() {
 	/* DELTA DRIVE                                                          */
 	/************************************************************************/
 	} else if(configuration.control == DELTA) {
-		// motor left
+		// Motor Left
 		{
-			int32_t speed = linear_map_2d(&map_motor_left_2d, m_ch_value[CH1], m_ch_value[CH2]);
+			int32_t speed = linear_map_2d(&map_motor_left_2d, (m_ch_value[CH1] + OFFSET_CH[CH1]), (m_ch_value[CH2] + OFFSET_CH[CH2]));
 			if(speed > 0) {
 				if(speed > 255) speed = 255;
 				if(speed > configuration.deadzone) set_pwm_motor_left(FWD, (uint8_t)(speed));
@@ -168,9 +171,9 @@ void control_update() {
 				else set_pwm_motor_left(BWD, 0);
 			}
 		}		
-		// motor right
+		// Motor Right
 		{
-			int32_t speed = linear_map_2d(&map_motor_right_2d, m_ch_value[CH1], m_ch_value[CH2]);
+			int32_t speed = linear_map_2d(&map_motor_right_2d, (m_ch_value[CH1] + OFFSET_CH[CH1]), (m_ch_value[CH2] + OFFSET_CH[CH2]));
 			if(speed > 0) {
 				if(speed > 255) speed = 255;
 				if(speed > configuration.deadzone) set_pwm_motor_right(FWD, (uint8_t)(speed));
@@ -181,7 +184,6 @@ void control_update() {
 				if(speed > configuration.deadzone) set_pwm_motor_right(BWD, (uint8_t)(speed));
 				else set_pwm_motor_right(BWD, 0);
 			}
-		}
-		
+		}		
 	}
 }
