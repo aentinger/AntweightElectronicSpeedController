@@ -38,6 +38,8 @@ typedef struct {
 	uint8_t remote_control_max_value_ch_1; // maximum pulse width of the remote control ch 1
 	uint8_t remote_control_min_value_ch_2; // minimum pulse with of the remote control ch 2
 	uint8_t remote_control_max_value_ch_2; // maximum pulse width of the remote control ch 2
+	int32_t r1, s1, t1; // channel 1
+	int32_t r2, s2, t2; // channel 2
 } s_config_data;
 
 extern volatile s_config_data configuration;

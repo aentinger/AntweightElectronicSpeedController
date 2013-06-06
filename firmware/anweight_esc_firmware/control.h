@@ -37,6 +37,11 @@ typedef enum {TANK = 0, DELTA = 1} E_CONTROL_SELECT;
 void init_control();
 
 /**
+ * @brief updates the linear mapper 2 functions after a configuration via the pc
+ */ 
+void update_linear_mapper_2d();
+
+/**
  * @brief callback function called when new data on channel 1 arrived
  */
 void control_ch1_data_callback(uint16_t const pulse_duration);

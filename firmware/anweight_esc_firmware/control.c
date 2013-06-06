@@ -59,8 +59,16 @@ void init_control() {
 	init_filter(&filt[CH1], 4, 125);
 	init_filter(&filt[CH2], 4, 125);
 	
-	init_linear_mapper_2d(&map_motor_left_2d, -510, -2, -2);
-	init_linear_mapper_2d(&map_motor_right_2d, 0, -2, 2);
+	init_linear_mapper_2d(&map_motor_left_2d, -16320, -65, -65);
+	init_linear_mapper_2d(&map_motor_right_2d, 0, -65, 65);
+}
+
+/**
+ * @brief updates the linear mapper 2 functions after a configuration via the pc
+ */ 
+void update_linear_mapper_2d() {
+	init_linear_mapper_2d(&map_motor_left_2d, configuration.r1, configuration.s1, configuration.t1);
+	init_linear_mapper_2d(&map_motor_right_2d, configuration.r2, configuration.s2, configuration.t2);
 }
 
 /**
@@ -159,7 +167,7 @@ void control_update() {
 	} else if(configuration.control == DELTA) {
 		// Motor Left
 		{
-			int32_t speed = linear_map_2d(&map_motor_left_2d, (m_ch_value[CH1] + OFFSET_CH[CH1]), (m_ch_value[CH2] + OFFSET_CH[CH2]));
+			int32_t speed = (linear_map_2d(&map_motor_left_2d, (m_ch_value[CH1] + OFFSET_CH[CH1]), (m_ch_value[CH2] + OFFSET_CH[CH2])) >> 5);
 			if(speed > 0) {
 				if(speed > 255) speed = 255;
 				if(speed > configuration.deadzone) set_pwm_motor_left(FWD, (uint8_t)(speed));
@@ -173,7 +181,7 @@ void control_update() {
 		}		
 		// Motor Right
 		{
-			int32_t speed = linear_map_2d(&map_motor_right_2d, (m_ch_value[CH1] + OFFSET_CH[CH1]), (m_ch_value[CH2] + OFFSET_CH[CH2]));
+			int32_t speed = (linear_map_2d(&map_motor_right_2d, (m_ch_value[CH1] + OFFSET_CH[CH1]), (m_ch_value[CH2] + OFFSET_CH[CH2])) >> 5);
 			if(speed > 0) {
 				if(speed > 255) speed = 255;
 				if(speed > configuration.deadzone) set_pwm_motor_right(FWD, (uint8_t)(speed));

@@ -40,7 +40,7 @@ void init_config() {
 	if(configuration.eeprom_written == EEPROM_NOT_WRITTEN) { // device was previously not configured, setting to standard values
 		configuration.eeprom_written = EEPROM_WRITTEN;
 		configuration.control = TANK;
-		configuration.deadzone = 5;
+		configuration.deadzone = 10;
 		configuration.remote_control_min_value_ch_1 = 0;
 		configuration.remote_control_max_value_ch_1 = 250;
 		configuration.remote_control_min_value_ch_2 = 0;
@@ -56,6 +56,9 @@ void init_config() {
 #define S_WRITE_CH1_MAX		(4)
 #define S_WRITE_CH2_MIN		(5)
 #define S_WRITE_CH2_MAX		(6)
+#define S_WRITE_R1			(7)
+#define S_WRITE_R2			(8)
+#define S_WRITE_S1			(9)
 
 #define	S_REQUEST_KIND_READ			(0x00)
 #define	S_REQUEST_KIND_WRITE		(0x01)
@@ -73,7 +76,9 @@ static uint8_t config_parse_state = S_REQUEST_KIND;
  */
 void config_parse_data(uint8_t const data_byte, bool *config_done_ptr) {
 	
-	static volatile uint8_t msg[7];
+	static volatile uint8_t msg[7 + 3 * sizeof(uint32_t)];
+	static uint8_t r1[4] = {0}, r2[4] = {0}, s1[4] = {0};
+	static uint8_t byte_cnt = 0; // used for receiving the 4 byte integers for R-S-T
 	
 	switch(config_parse_state) {
 		case S_REQUEST_KIND: {
@@ -119,27 +124,63 @@ void config_parse_data(uint8_t const data_byte, bool *config_done_ptr) {
 		} break;
 		case S_WRITE_CH2_MAX: {
 			msg[S_WRITE_CH2_MAX] = data_byte;
-			config_parse_state = S_REQUEST_KIND;
-			
-			// configuration byte
-			if(msg[S_WRITE_CONFIG] & S_CONFIG_CONTROL_MASK) configuration.control = TANK;
-			else configuration.control = DELTA;
-			// deadzone byte
-			configuration.deadzone = msg[S_WRITE_DEADZONE];
-			// channel 1 min and maximum values
-			configuration.remote_control_min_value_ch_1 = msg[S_WRITE_CH1_MIN];
-			configuration.remote_control_max_value_ch_1 = msg[S_WRITE_CH1_MAX];
-			// channel 2 min and maximum values
-			configuration.remote_control_min_value_ch_2 = msg[S_WRITE_CH2_MIN];
-			configuration.remote_control_max_value_ch_2 = msg[S_WRITE_CH2_MAX];
-			// write data to eeprom
-			eeprom_write_block((void*)(&configuration), CONFIG_EEPROM_ADDRESS, sizeof(configuration));
-			// configuration is now done here
-			*config_done_ptr = true;
-			// send answer
-			uint8_t msg_reply = MSG_OK;
-			virtual_serial_send_data(&msg_reply, 1);
-		} break;		
+			config_parse_state = S_WRITE_R1;
+		} break;
+		case S_WRITE_R1: {
+			r1[byte_cnt] = data_byte;
+			byte_cnt++;
+			if(byte_cnt == 4) {
+				byte_cnt = 0;
+				config_parse_state = S_WRITE_R2;
+			}
+		} break;
+		case S_WRITE_R2: {
+			r2[byte_cnt] = data_byte;
+			byte_cnt++;
+			if(byte_cnt == 4) {
+				byte_cnt = 0;
+				config_parse_state = S_WRITE_S1;
+			}
+		} break;
+		case S_WRITE_S1: {
+			s1[byte_cnt] = data_byte;
+			byte_cnt++;
+			if(byte_cnt == 4) {
+				byte_cnt = 0;
+				
+				config_parse_state = S_REQUEST_KIND;
+				
+				// configuration byte
+				if(msg[S_WRITE_CONFIG] & S_CONFIG_CONTROL_MASK) configuration.control = TANK;
+				else configuration.control = DELTA;
+				// deadzone byte
+				configuration.deadzone = msg[S_WRITE_DEADZONE];
+				// channel 1 min and maximum values
+				configuration.remote_control_min_value_ch_1 = msg[S_WRITE_CH1_MIN];
+				configuration.remote_control_max_value_ch_1 = msg[S_WRITE_CH1_MAX];
+				// channel 2 min and maximum values
+				configuration.remote_control_min_value_ch_2 = msg[S_WRITE_CH2_MIN];
+				configuration.remote_control_max_value_ch_2 = msg[S_WRITE_CH2_MAX];
+				// r - s - t values
+				// channel 1
+				configuration.r1 = (int32_t)(((uint32_t)(r1[0])<<24) + ((uint32_t)(r1[1])<<16) + ((uint32_t)(r1[2])<<8) + ((uint32_t)(r1[3])));
+				configuration.s1 = (int32_t)(((uint32_t)(s1[0])<<24) + ((uint32_t)(s1[1])<<16) + ((uint32_t)(s1[2])<<8) + ((uint32_t)(s1[3])));
+				configuration.t1 = configuration.s1;
+				// channel 2
+				configuration.r2 = (int32_t)(((uint32_t)(r2[0])<<24) + ((uint32_t)(r2[1])<<16) + ((uint32_t)(r2[2])<<8) + ((uint32_t)(r2[3])));
+				configuration.s2 = configuration.s1;
+				configuration.t2 = 0 - configuration.s1; // *(-1)
+				// update the linear mapper 2d
+				update_linear_mapper_2d();
+				// write data to eeprom
+				eeprom_write_block((void*)(&configuration), CONFIG_EEPROM_ADDRESS, sizeof(configuration));
+				// configuration is now done here
+				*config_done_ptr = true;
+				// send answer
+				uint8_t msg_reply = MSG_OK;
+				virtual_serial_send_data(&msg_reply, 1);
+			}
+		} break;
 		default: {
 			config_parse_state = S_REQUEST_KIND;
 		} break;
