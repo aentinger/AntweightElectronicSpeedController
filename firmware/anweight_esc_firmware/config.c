@@ -40,7 +40,7 @@ void init_config() {
 	if(configuration.eeprom_written == EEPROM_NOT_WRITTEN) { // device was previously not configured, setting to standard values
 		configuration.eeprom_written = EEPROM_WRITTEN;
 		configuration.control = TANK;
-		configuration.deadzone = 10;
+		configuration.deadzone = 20;
 		configuration.remote_control_min_value_ch_1 = 0;
 		configuration.remote_control_max_value_ch_1 = 250;
 		configuration.remote_control_min_value_ch_2 = 0;
