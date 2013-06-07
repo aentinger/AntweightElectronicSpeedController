@@ -29,7 +29,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <iomanip>
-#include <arpa/inet.h>
+#include <winsock2.h>
 #include <stdio.h>
 
 /**
