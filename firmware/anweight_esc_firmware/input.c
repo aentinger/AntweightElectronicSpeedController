@@ -78,7 +78,7 @@ ISR(TIMER1_OVF_vect) {
 	// in 260 ms on one channel we should have 13 pulses
 	// so with two channels we should have 26 pulses, if we have significant less (lets say half)
 	// its fair to assume, that we have a signal loss,
-	uint8_t const MIN_PULSES = 20;
+	uint8_t const MIN_PULSES = 22;
 	
 	if(m_pulse_cnt < MIN_PULSES) {
 		// set the flag that symbolizes good data to false
